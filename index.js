@@ -5,7 +5,8 @@ const bodyParser = require("body-parser");
 // const routes = require("./config/routes")
 const app = express();
 const {initializeApp} = require('firebase/app');
-const {getFirestore, collection, getDocs, addDoc, setDoc, doc} = require('firebase/firestore/lite');
+const {getFirestore, collection, getDocs, addDoc, setDoc, doc, deleteDoc, query, where} = require('firebase/firestore/lite');
+const {add} = require("nodemon/lib/rules");
 
 // app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({extended: false}));
@@ -30,8 +31,9 @@ const firebaseConfig = {
 const fbapp = initializeApp(firebaseConfig);
 const db = getFirestore(fbapp);
 
+// INFORMAÇÕES DO FILME
 app.get('/', async (req, res) => {
-  const querySnapshot = await getDocs(collection(db, "filmes"), (db, "generos"));
+  const querySnapshot = await getDocs(collection(db, "filmes",));
   let array = {};
   querySnapshot.forEach((doc) => {
     // doc.data() is never undefined for query doc snapshots
@@ -40,30 +42,62 @@ app.get('/', async (req, res) => {
   });
   res.send(array);
 });
-  app.post('/', async (req, res) => {
-    const filmes = req.body;
-    console.log(filmes);
+app.post('/', async (req, res) => {
+  const filmes = req.body;
+  console.log(filmes);
 
-    await addDoc(collection(db, "filmes", ),filmes);
-    res.status(201).send("AGORA FOI?")
-  });
+  await addDoc(collection(db, "filmes",), filmes);
+  res.status(201).send("POST concluído com sucesso!")
+});
 
 app.put('/', async (req, res) => {
   const filmes = req.body;
 
-  await setDoc(doc(db, "filmes", req.body.id),filmes);
-res.send(req.body.id)
+  await setDoc(doc(db, "filmes", req.body.id), filmes);
+  res.send("PUT concluído com sucesso!")
 });
 
-  // const docRef = doc(db, "filmes", "SF");
-  // const docSnap = await getDoc(collection(db, 'filmes'));
-  //
-  // if (docSnap.exists()) {
-  //   console.log("Document data:", docSnap.data());
-  // } else {
-  //   // doc.data() will be undefined in this case
-  //   console.log("No such document!");
-  // }
+app.delete('/', async (req, res) => {
+  const filmes = req.body;
+
+  await deleteDoc(doc(db, "filmes", req.body.id), filmes);
+  res.send("Delete concluído com sucesso!")
+});
+// INFORMAÇÕES DO USUÁRIO/login
+app.post('/cadastro', async (req, res) => {
+  const usuarios = req.body;
+  console.log(usuarios);
+
+  await addDoc(collection(db, "usuarios",), usuarios);
+  res.status(201).send("POST concluído com sucesso!")
+});
+
+// INFORMAÇÕES DO CADASTRO usuario
+app.post('/login', async (req, res) => {
+  const usuarios = req.body;
+  const usuariosRef = collection(db,'usuarios');
+  const q = await query(usuariosRef , where('email', '==', usuarios.email,));
+  //const q2 = await query(usuariosRef,  where  ('senha', '==', usuarios.senha,)); //esse é o certo mas nao da mais certo
+  const snapshot = await getDocs(q);
+  if (snapshot.empty) {
+    console.log('Usuário não encontrado');
+    res.status(402).send("Houve um problema")
+    return;
+  }
+  snapshot.forEach(doc => {
+    console.log(doc.id, '=>', doc.data().senha == usuarios.senha ? res.send(doc.data()) : res.status(402).send("cria soma daqui, tua senha ta errada parsero"));
+  });
+});
+
+
+// const docRef = doc(db, "filmes", "SF");
+// const docSnap = await getDoc(collection(db, 'filmes'));
+// if (docSnap.exists()) {
+//   console.log("Document data:", docSnap.data());
+// } else {
+//   // doc.data() will be undefined in this case
+//   console.log("No such document!");
+// }
 
 
 app.listen(21262, () => {
