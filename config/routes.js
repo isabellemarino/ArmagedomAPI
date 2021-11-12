@@ -13,7 +13,7 @@ routes.get("/", (req, res) => {
 })
 
 // inserir dados
-routes.post("/add", (req, res) =>{
+routes.post("/", (req, res) =>{
   const body = req.body
   console.log(body)
 

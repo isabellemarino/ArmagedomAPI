@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 // const routes = require("./config/routes")
 const app = express();
 const {initializeApp} = require('firebase/app');
-const {getFirestore, collection, getDocs, addDoc, setDoc} = require('firebase/firestore/lite');
+const {getFirestore, collection, getDocs, addDoc, setDoc, doc} = require('firebase/firestore/lite');
 
 // app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({extended: false}));
@@ -31,7 +31,7 @@ const fbapp = initializeApp(firebaseConfig);
 const db = getFirestore(fbapp);
 
 app.get('/', async (req, res) => {
-  const querySnapshot = await getDocs(collection(db, "filmes"));
+  const querySnapshot = await getDocs(collection(db, "filmes"), (db, "generos"));
   let array = {};
   querySnapshot.forEach((doc) => {
     // doc.data() is never undefined for query doc snapshots
@@ -39,9 +39,21 @@ app.get('/', async (req, res) => {
     console.log(doc.id, " => ", doc.data());
   });
   res.send(array);
+});
+  app.post('/', async (req, res) => {
+    const filmes = req.body;
+    console.log(filmes);
 
+    await addDoc(collection(db, "filmes", ),filmes);
+    res.status(201).send("AGORA FOI?")
+  });
 
+app.put('/', async (req, res) => {
+  const filmes = req.body;
 
+  await setDoc(doc(db, "filmes", req.body.id),filmes);
+res.send(req.body.id)
+});
 
   // const docRef = doc(db, "filmes", "SF");
   // const docSnap = await getDoc(collection(db, 'filmes'));
@@ -52,7 +64,7 @@ app.get('/', async (req, res) => {
   //   // doc.data() will be undefined in this case
   //   console.log("No such document!");
   // }
-})
+
 
 app.listen(21262, () => {
   console.log(`Express started at http://localhost:21262`)
