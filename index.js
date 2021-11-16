@@ -32,7 +32,7 @@ const fbapp = initializeApp(firebaseConfig);
 const db = getFirestore(fbapp);
 
 // INFORMAÇÕES DO FILME
-app.get('/', async (req, res) => {
+app.get('/filmes', async (req, res) => {
   const querySnapshot = await getDocs(collection(db, "filmes",));
   let array = {};
   querySnapshot.forEach((doc) => {
@@ -42,7 +42,7 @@ app.get('/', async (req, res) => {
   });
   res.send(array);
 });
-app.post('/', async (req, res) => {
+app.post('/filmes', async (req, res) => {
   const filmes = req.body;
   console.log(filmes);
 
@@ -50,14 +50,14 @@ app.post('/', async (req, res) => {
   res.status(201).send("POST concluído com sucesso!")
 });
 
-app.put('/', async (req, res) => {
+app.put('/filmes', async (req, res) => {
   const filmes = req.body;
 
   await setDoc(doc(db, "filmes", req.body.id), filmes);
   res.send("PUT concluído com sucesso!")
 });
 
-app.delete('/', async (req, res) => {
+app.delete('/filmes', async (req, res) => {
   const filmes = req.body;
 
   await deleteDoc(doc(db, "filmes", req.body.id), filmes);
@@ -76,17 +76,14 @@ app.post('/cadastro', async (req, res) => {
 app.post('/login', async (req, res) => {
   const usuarios = req.body;
   const usuariosRef = collection(db,'usuarios');
-  const q = await query(usuariosRef , where('email', '==', usuarios.email,));
-  //const q2 = await query(usuariosRef,  where  ('senha', '==', usuarios.senha,)); //esse é o certo mas nao da mais certo
+  const q = await query(usuariosRef , where('email', '==', usuarios.email,), where('senha', '==', usuarios.senha));
   const snapshot = await getDocs(q);
+
   if (snapshot.empty) {
-    console.log('Usuário não encontrado');
-    res.status(402).send("Houve um problema")
+    res.status(402).send("E-mail ou senha inválidos")
     return;
-  }
-  snapshot.forEach(doc => {
-    console.log(doc.id, '=>', doc.data().senha == usuarios.senha ? res.send(doc.data()) : res.status(402).send("cria soma daqui, tua senha ta errada parsero"));
-  });
+    };
+  res.status(200).send("OK")
 });
 
 
